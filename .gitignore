@@ -144,3 +144,4 @@ vite.config.ts.timestamp-*
 # harrison's stuff
 invokeRestMethods.txt
 BotFramework-Emulator-4.15.1-windows-setup.exe
+package-lock.json
