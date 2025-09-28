@@ -101,4 +101,14 @@ Workflows are defined as a series of steps that may include:
 - Data transformations
 - Integrations with external systems
 
+## Communication Between Microsoft Emulator and Remote Bot
+
+To exchange messages between the Microsoft Emulator (running on localhost:58950) and the Remote Bot (running on Render) we need to build a dev tunnel. It can be done with ngrok:
+
+```
+ngrok http 58950
+```
+
+The bot framework adapter from Microsoft will recognize which serviceURL is in the origin URL and, by this, will answer it back
+
 ## Testing
