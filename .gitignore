@@ -40,6 +40,9 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
+env/
+__pycache__/
+.venv/
 
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
@@ -137,3 +140,7 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# harrison's stuff
+invokeRestMethods.txt
+BotFramework-Emulator-4.15.1-windows-setup.exe

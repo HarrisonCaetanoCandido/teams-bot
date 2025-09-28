@@ -1,0 +1,24 @@
+import express from 'express';
+import { router } from './routes/router.routes'
+import dotenv from 'dotenv';
+import { Request, Response } from 'express';
+
+dotenv.config();
+
+const app = express();
+
+const PORT = process.env.WEBHOOK_API || 3000;
+
+app.use(express.json());
+
+app.use('/api/', router);
+
+app.get('/health', (req: Request, res: Response) => {
+    res.status(200).json({
+        success: true
+    });
+});
+
+app.listen(PORT, () => {
+    console.log(`API running on ${PORT}`);
+});
