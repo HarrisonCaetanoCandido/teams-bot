@@ -9,7 +9,7 @@ const RAGAPIURL = process.env.FASTAPI_URL;
 function isLocalTest(activity: any): boolean {
     return activity.channelId === 'emulator' ||
         activity.serviceUrl?.includes('localhost') ||
-        !activity.serviceUrl;
+        activity.serviceUrl?.includes('ngrok');
 }
 
 export default async function messageService(req: Request, res: Response) {
