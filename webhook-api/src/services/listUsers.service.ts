@@ -4,15 +4,13 @@ import axios from "axios";
 export default async function listUsers(req: Request, res: Response) {
     try {
         console.log("On listUsers Service")
-        const domain_url = 'https://jsonplaceholder.typicode.com/'
-        const header = {
-            headers: {
-                "Context-Type": "application/json"
-            },
-            timeout: 10000
+        const domain_url = 'https://jsonplaceholder.typicode.com'
+        const config = {
+            headers: { "Content-Type": "application/json" },
+            timeout: 50000
         }
 
-        const sys_response = await axios.get(`${domain_url}/users`, header)
+        const sys_response = await axios.get(`${domain_url}/users`, config)
 
         if (sys_response.status == 200)
             console.log("Sys_response status code: ", sys_response.status);

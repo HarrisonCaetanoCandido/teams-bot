@@ -7,23 +7,24 @@ import axios from "axios";
 export default class FlowExecutor {
     private static registry = new FlowRegistry();
 
-    // a intencao eh que esse metodo receba comandos do chat para executar um fluxo
     public static execute(flowName: string, parameters: string, metadata: FlowExecuteMetadata) {
         const jobId = this.generateExecId();
 
-        // desa forma nao travamos o chat enquanto o flow eh executado
-        flowQueue.add('flow-job', {
+        flowQueue.add('flow-jobs', {
             jobId,
             flowName,
             parameters,
             status: 'pending',
-            createdAt: new Date()
+            createdAt: new Date(),
+            metadata
         }, {
             jobId,
             attempts: 3,
             backoff: 5000,
             removeOnComplete: true,
         });
+
+        console.log(`Job ${jobId} for flow ${flowName} added to the queue`);
 
         return jobId;
     }
@@ -43,58 +44,77 @@ export default class FlowExecutor {
                 await this.executeStep(step, job.parameters);
             }
 
-            await this.updateExecStatus(job.jobId, 'completed', 'Flow executed successfully');
-            console.log(`Job ${job.jobId} completed successfully`);
+            const data = {
+                type: "message",
+                from: { id: "bot" },
+                text: `Flow ${job.flowName} executed successfully!`,
+            }
+
+            const header = {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+
+            const backToTeamsBaseUrl = job.metadata.serviceUrl.replace(/\/$/, '');
+            const backToTeamsConversationId = encodeURIComponent(job.metadata.conversationId);
+            const backToTeamsUrl = `${backToTeamsBaseUrl}/v3/conversations/${backToTeamsConversationId}/activities`;
+
+            await axios.post(backToTeamsUrl, data, header).then((res) => {
+                console.log(`Notified conversation ${backToTeamsConversationId} of completion. Status: ${res.status}`);
+            }).catch((err) => {
+                console.error(`Could not notify domain ${backToTeamsBaseUrl} with conversation ${backToTeamsConversationId}: ${err}`);
+            });
         } catch (err: any) {
             console.error(`Error processing job ${job.jobId}: ${err.message}`);
-            await this.updateExecStatus(job.jobId, 'failed', err.message);
         }
     }
 
     private static async executeStep(step: StepsDefinition, parameters: string) {
-        switch (step.action) {
-            case 'HTTP_GET':
-                if (step.endpoint)
-                    return await this.executeHttpGet(step.endpoint, parameters);
-                throw new Error(`Step ${step.name} does not contain an endpoint!`);
-            case 'HTTP_POST':
-                if (!step.endpoint)
+        try {
+            switch (step.action) {
+                case 'HTTP_GET':
+                    if (step.endpoint)
+                        return await this.executeHttpGet(step.endpoint, parameters);
                     throw new Error(`Step ${step.name} does not contain an endpoint!`);
+                case 'HTTP_POST':
+                    if (!step.endpoint)
+                        throw new Error(`Step ${step.name} does not contain an endpoint!`);
 
-                if (!step.data)
-                    throw new Error(`Step ${step.name} does not contain a data field`);
+                    if (!step.data)
+                        throw new Error(`Step ${step.name} does not contain a data field`);
 
-                return await this.executeHttpPost(step.endpoint, step.data, parameters);
-            case 'DATA_TRANSFORM':
-                if (!step.rules)
-                    throw new Error(`Step ${step.name} does not contain a rules field!`);
+                    return await this.executeHttpPost(step.endpoint, step.data, parameters);
+                case 'DATA_TRANSFORM':
+                    if (!step.rules || step.rules.length == 0)
+                        throw new Error(`Step ${step.name} does not contain a rules field!`);
 
-                return await this.executeDataTransform(step.rules, parameters);
-            default:
-                throw new Error(`Unknown action type: ${step.action}`);
+                    return await this.executeDataTransform(step.rules, parameters);
+                default:
+                    throw new Error(`Unknown action type: ${step.action}`);
+            }
+        } catch (err: any) {
+            console.error(`Could not process a step ${err}`);
         }
     }
 
     private static async executeHttpGet(endpoint: string, parameters: string) {
-        console.log(`GET ${endpoint} with params ${parameters}`);
+        console.log(`GET ${endpoint} with params ${JSON.stringify(parameters)}`);
 
         const config = {
             headers: {
-                'Content-Type': 'application/json'
+                "Content-Type": "application/json"
             },
-            params: JSON.parse(parameters)
+            timeout: 70000,
         };
 
-        axios.get(endpoint, config).then((res => {
-            console.log(`Response status: ${res.status}`);
+        const sys_response = await axios.get(endpoint, config);
 
-            console.log(`Data: ${res.data}`);
-
-            // armazenar no banco ou algo assim
-
-        })).catch(err => {
-            throw new Error(`Could not get data from ${endpoint}: ${err}`);
-        });
+        if (sys_response.status == 200) {
+            console.log(`Response status: ${sys_response.status}`);
+            console.log(`Data: ${JSON.stringify(sys_response.data)}`);
+        } else
+            console.error("Sys_response status code: ", sys_response.status);
     }
 
     private static async executeHttpPost(endpoint: string, data: string, parameters: string) {
@@ -116,11 +136,7 @@ export default class FlowExecutor {
         });
     }
 
-    private static async executeDataTransform(rules: string[], parameters: string) {
+    private static async executeDataTransform(rules: string[], parameters: string): Promise<void> {
         console.log(`Execute Data Transform with rules ${rules} and params ${parameters}`);
-    }
-
-    private static async updateExecStatus(jobId: string, status: 'pending' | 'in_progress' | 'completed' | 'failed', message?: string) {
-        // const job = await this.queue.getJob(jobId);
     }
 }

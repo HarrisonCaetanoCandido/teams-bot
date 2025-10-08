@@ -1,12 +1,12 @@
 import { Request, Response } from 'express'
 import FlowExecutor from '../services/flowExecutor.service'
-import {FlowExecuteMetadata} from '../types/flowExecuteMetadata.types'
+import { FlowExecuteMetadata } from '../types/flowExecuteMetadata.types'
 
 export default async function executeFlow(req: Request, res: Response) {
     try {
-        const { flowName, parameters, initiatedBy, correlationId } = req.body;
+        const { flowName, parameters, initiatedBy, correlationId, conversationId, serviceUrl } = req.body;
 
-        console.log(`Executando o fluxo ${flowName} ${parameters}`);
+        console.log(`Executando o fluxo ${flowName} ${JSON.stringify(parameters)}`);
 
         const isValid = await validateFlowAndPermissions(flowName, initiatedBy);
 
@@ -19,14 +19,20 @@ export default async function executeFlow(req: Request, res: Response) {
 
         const flowExecuteMetadata: FlowExecuteMetadata = {
             initiatedBy: initiatedBy,
-            correlationId: correlationId
+            correlationId: correlationId,
+            conversationId: conversationId,
+            serviceUrl: serviceUrl
         }
 
-        // executa o flow assincronamente sem bloquear a request
         const executionId = FlowExecutor.execute(flowName, parameters, flowExecuteMetadata);
 
+        res.status(200).json({
+            success: true,
+            message: 'Flow execution started',
+            executionId: executionId
+        })
     } catch (err: any) {
-        console.error(`Could not run executeFlow ${err}`)
+        throw new Error(`Could not run executeFlow ${err}`);
     }
 }
 

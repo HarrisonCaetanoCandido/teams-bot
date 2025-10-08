@@ -8,7 +8,6 @@ export class FlowRegistry {
     }
 
     private initializeFlows() {
-        // IMPORT USERS FLOW
         this.flows.set('import-users', {
             name: 'import-users',
             description: 'Importa usuários do sistema externo',
@@ -25,20 +24,19 @@ export class FlowRegistry {
                 {
                     name: 'transform-data',
                     action: 'DATA_TRANSFORM',
-                    rules: [ /* regras de transformação */]
+                    rules: []
                 },
-                {
-                    name: 'update-crm', // poderia ser send email se nao der pra retornar no chat
-                    action: 'HTTP_POST',
-                    endpoint: '/api/internal/users',
-                    data: 'transformedData'
-                }
+                // {
+                //     name: 'update-crm', 
+                //     action: 'HTTP_POST',
+                //     endpoint: '/api/internal/users',
+                //     data: 'transformedData'
+                // }
             ],
             requiredPermissions: ['user:write'],
-            timeout: 300000 // da 5 minutos
+            timeout: 300000
         });
 
-        // GENERATE
         this.flows.set('generate-report', {
             name: 'generate-report',
             description: 'Gera relatório consolidado',
