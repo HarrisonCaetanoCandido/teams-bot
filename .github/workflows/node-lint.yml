@@ -1,0 +1,41 @@
+name: Node.js Lint
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - '!.github/**'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.eslintrc.json'
+      - 'tsconfig.json'
+
+  pull_request:
+    branches: ["**"]
+    paths:
+      - '!.github/**'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.eslintrc.json'
+      - 'tsconfig.json'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js Config
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Instalall Dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npm run lint

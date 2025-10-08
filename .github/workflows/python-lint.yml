@@ -1,0 +1,43 @@
+name: Python Lint
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - 'rag-api/**'
+      - '.github/workflows/python-quality.yml'
+  pull_request:
+    branches: ["**"]
+    paths:
+      - 'rag-api/**'
+      - '.github/workflows/python-quality.yml'
+
+jobs:
+  lint-and-format:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./rag-api
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install black flake8
+
+      - name: Lint with flake8
+        run: |
+          flake8 . --count --show-source --statistics
+
+      - name: Check formatting with black
+        run: |
+          black . --check
