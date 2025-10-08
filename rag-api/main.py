@@ -31,8 +31,10 @@ async def health_check():
 @app.post("/ai/parse-command")
 async def parseCommand(request: ParseCommandRequest):
     print(
-        f"📨 Mensagem recebida: '{request.message}' do usuário: '{request.user_id}' de conversa '{request.conversation_id}' e de origem: '{request.service_url}'"
-    )
+        f"📨 Mensagem recebida: '{request.message}' do usuário: \
+        '{request.user_id}' de conversa '{request.conversation_id}' \
+        e de origem: '{request.service_url}'"
+)
 
     # simulacao de predicao
     rag_response = {
