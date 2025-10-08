@@ -34,7 +34,7 @@ async def parseCommand(request: ParseCommandRequest):
         f"📨 Mensagem recebida: '{request.message}' do usuário: \
         '{request.user_id}' de conversa '{request.conversation_id}' \
         e de origem: '{request.service_url}'"
-)
+    )
 
     # simulacao de predicao
     rag_response = {
