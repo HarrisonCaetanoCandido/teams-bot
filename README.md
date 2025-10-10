@@ -111,4 +111,8 @@ ngrok http 58950
 
 The bot framework adapter from Microsoft will recognize which serviceURL is in the origin URL and, by this, will answer it back
 
+## Resilience
+
+At the moment, applied exponential backoff, node local dns cache and iterative timeout on services that interact with external APIs.
+
 ## Testing
